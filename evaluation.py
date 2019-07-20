@@ -1,3 +1,5 @@
+import random
+
 import torch
 from torchvision.utils import make_grid
 from torchvision.utils import save_image
@@ -6,7 +8,7 @@ from util.image import unnormalize
 
 
 def evaluate(model, dataset, device, filename):
-    image, mask, gt = zip(*[dataset[i] for i in range(8)])
+    image, mask, gt = zip(*[dataset[random.randint(0, len(dataset) - 1)] for i in range(1)])
     image = torch.stack(image)
     mask = torch.stack(mask)
     gt = torch.stack(gt)

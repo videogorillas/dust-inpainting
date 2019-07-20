@@ -8,6 +8,7 @@ from torchvision import transforms
 from tqdm import tqdm
 
 import opt
+from dustplaces import DustPlaces
 from evaluation import evaluate
 from loss import InpaintingLoss
 from net import PConvUNet
@@ -45,12 +46,13 @@ parser.add_argument('--root', type=str, default='/srv/datasets/Places2')
 parser.add_argument('--mask_root', type=str, default='./masks')
 parser.add_argument('--save_dir', type=str, default='./snapshots/default')
 parser.add_argument('--log_dir', type=str, default='./logs/default')
+parser.add_argument('--masks_csv', type=str, default='selected_patches.csv')
 parser.add_argument('--lr', type=float, default=2e-4)
 parser.add_argument('--lr_finetune', type=float, default=5e-5)
 parser.add_argument('--max_iter', type=int, default=1000000)
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--n_threads', type=int, default=16)
-parser.add_argument('--save_model_interval', type=int, default=50000)
+parser.add_argument('--save_model_interval', type=int, default=10000)
 parser.add_argument('--vis_interval', type=int, default=5000)
 parser.add_argument('--log_interval', type=int, default=10)
 parser.add_argument('--image_size', type=int, default=256)
@@ -76,8 +78,8 @@ img_tf = transforms.Compose(
 mask_tf = transforms.Compose(
     [transforms.Resize(size=size), transforms.ToTensor()])
 
-dataset_train = Places2(args.root, args.mask_root, img_tf, mask_tf, 'train')
-dataset_val = Places2(args.root, args.mask_root, img_tf, mask_tf, 'val')
+dataset_train = DustPlaces(args.root, args.mask_root, img_tf, mask_tf, 'train', masks_csv=args.masks_csv)
+dataset_val = DustPlaces(args.root, args.mask_root, img_tf, mask_tf, 'val', masks_csv=args.masks_csv)
 
 iterator_train = iter(data.DataLoader(
     dataset_train, batch_size=args.batch_size,
@@ -129,6 +131,6 @@ for i in tqdm(range(start_iter, args.max_iter)):
     if (i + 1) % args.vis_interval == 0:
         model.eval()
         evaluate(model, dataset_val, device,
-                 '{:s}/images/test_{:d}.jpg'.format(args.save_dir, i + 1))
+                 '{:s}/images/test_{:d}.png'.format(args.save_dir, i + 1))
 
 writer.close()
